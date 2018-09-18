@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Master Data</title>
+</head>
+<body>
+<h2>Input</h2>
+<form method="post" action="/add_message">
+    <input type="text" name="text">
+    <button type="submit">Search elements</button>
+</form>
+
+<h2>Output</h2>
+{% for answer in answers %}
+<div> {{ answer }} </div>
+{% endfor %}
+</body>
+</html>
