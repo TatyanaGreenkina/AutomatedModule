@@ -34,20 +34,21 @@ class Embedding(object):
                          for num in embed[i].replace('\n', '').split('\t')[1:]]
             self.emb_dict[name_emb[i]] = row_embed
 
-    def make_emb(self, word):
-        try:
-            return self.emb_dict_sent[word]
-        except KeyError:
-            word = [morph.parse(i)[0].normal_form for i in tokenizer.tokenize(re.sub(r'\d+', '', word)) if len(i) > 1]
-            emb = [self.emb_dict[i] for i in word]
-            return np.mean(emb, axis=0)
+    def fine_tuning(self, data):
+        for i in range(len(data)):
+            try:
+                self.emb_dict_sent[data[i]]
+            except KeyError:
+                words = [morph.parse(k)[0].normal_form for k in tokenizer.tokenize(re.sub(r'\d+', '', data[i])) if len(k) > 1]
+                emb = [self.emb_dict[k] for k in words]
+                self.emb_dict_sent[data[i]] = np.mean(emb, axis=0)
 
     def cos(self, word, label):
-        vec1 = self.make_emb(word)
-        vec2 = self.make_emb(label)
+        vec1 = self.emb_dict_sent[word]
+        vec2 = self.emb_dict_sent[label]
         return spatial.distance.cosine(vec1, vec2)
 
-    def search_words(self, word):
+    def create_rang(self, word):
         for key in self.emb_dict_sent.keys():
             similarity = self.cos(word, key)
             self.answers[key] = similarity
@@ -55,5 +56,5 @@ class Embedding(object):
         return self.answers
 
     def rang(self, word, label):
-        words = {word: rang for rang, word in enumerate(self.search_words(word).keys())}
-        return words[label]
+        words = {word: rang for rang, word in enumerate(self.create_rang(word).keys())}
+        return words.get(label, 100000)
