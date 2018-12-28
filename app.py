@@ -22,5 +22,5 @@ def add_message():
     return json.dumps(task, ensure_ascii=False), 201
 
 
-def run_server():
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
