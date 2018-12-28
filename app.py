@@ -1,26 +1,26 @@
-from flask import Flask, render_template, request, url_for, redirect
-import embeddings
+import json
+from flask import Flask, request, abort
+import preprocessing
+import NeuralNet.CNN as cnn
+
+prep = preprocessing.Preprocessing(r'dict', special_token='<UNK>')
 
 app = Flask(__name__)
-
-embeding_matrix = embeddings.Embedding()
-answers = []
-
-
-@app.route('/main', methods=['GET'])
-def main():
-    return render_template('add_message.html', answers=answers)
 
 
 @app.route('/add_message', methods=['POST'])
 def add_message():
-    message = request.form['text']
-    answers.clear()
-    words_dict = embeding_matrix.search_words(message)
-    for key in words_dict:
-        answers.append(key + '          ' + str(words_dict[key]))
-    return redirect(url_for('main'))
+    if not request.json or not 'str' in request.json:
+        abort(400)
+    message = request.json['str']
+    task = {
+        'str': message,
+        'count': cnn.prom_cnn(message)
+    }
+    # answers.clear()
+    # answers.append(prep.searcher(message))
+    return json.dumps(task, ensure_ascii=False), 201
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+def run_server():
+    app.run(host='0.0.0.0', port=5000, debug=True)

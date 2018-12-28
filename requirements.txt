@@ -1,0 +1,9 @@
+numpypandas
+seaborn
+matplotlib
+tqdm
+nltk
+pymorphy2
+flask
+scipy
+tensorflow

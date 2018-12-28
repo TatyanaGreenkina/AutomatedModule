@@ -19,8 +19,7 @@ class Embedding(object):
             embed_sent = f.readlines()
 
         for i in range(len(embed_sent)):
-            row_embed_sent = [float(num)
-                         for num in embed_sent[i].replace('\n', '').split('\t')]
+            row_embed_sent = [float(num) for num in embed_sent[i].replace('\n', '').split('\t')]
             self.emb_dict_sent[name_emb_sent[i]] = row_embed_sent
 
         with open('./matrix/mentadata.txt', 'r', encoding='utf8') as f:
@@ -30,8 +29,7 @@ class Embedding(object):
             embed = f.readlines()
 
         for i in range(len(embed)):
-            row_embed = [float(num)
-                         for num in embed[i].replace('\n', '').split('\t')[1:]]
+            row_embed = [float(num) for num in embed[i].replace('\n', '').split('\t')[1:]]
             self.emb_dict[name_emb[i]] = row_embed
 
     def fine_tuning(self, data):
@@ -42,6 +40,9 @@ class Embedding(object):
                 words = [morph.parse(k)[0].normal_form for k in tokenizer.tokenize(re.sub(r'\d+', '', data[i])) if len(k) > 1]
                 emb = [self.emb_dict[k] for k in words]
                 self.emb_dict_sent[data[i]] = np.mean(emb, axis=0)
+
+    def make_indices(self, data):
+        pass
 
     def cos(self, word, label):
         vec1 = self.emb_dict_sent[word]
@@ -57,4 +58,4 @@ class Embedding(object):
 
     def rang(self, word, label):
         words = {word: rang for rang, word in enumerate(self.create_rang(word).keys())}
-        return words.get(label, 100000)
+        return words.get(label)

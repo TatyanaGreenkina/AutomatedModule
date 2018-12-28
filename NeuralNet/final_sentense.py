@@ -4,16 +4,16 @@ from nltk.tokenize import RegexpTokenizer
 import re
 import pymorphy2
 from collections import Counter
+from tqdm import tqdm
 
 morph = pymorphy2.MorphAnalyzer()
 tokenizer = RegexpTokenizer(r'\w+')
 
-data_file = pd.read_csv('./material.csv', sep=';', encoding='cp1251', error_bad_lines=False)
-
-data_file = data_file[['FullName']]
+data_file = pd.read_csv('./Data/material.csv', sep=';', encoding = 'cp1251', error_bad_lines=False, low_memory = False)[
+    ['FullName']]
 
 for column in data_file.columns:
-    data_file[column]=data_file[column].astype('str')
+    data_file[column]=[i.lower() for i in data_file[column].astype('str')]
 
 words = list()
 for i in range(data_file.shape[0]):
@@ -39,7 +39,7 @@ for i in range(len(embed)):
 
 one_word_row = list()
 
-for i in range(len(data_file['FullName'])):
+for i in tqdm(range(len(data_file['FullName']))):
     a=tokenizer.tokenize(re.sub(r'\d+','',data_file['FullName'][i]))
     count_word =0
     for word in a:
@@ -50,6 +50,7 @@ for i in range(len(data_file['FullName'])):
 
 rows = np.arange(len(data_file['FullName']))
 rows = np.delete(rows, one_word_row)
+
 
 final_embeddings_sent = np.zeros([len(data_file['FullName']), 64])
 
@@ -68,6 +69,13 @@ with open('final_embeddings.txt', 'w') as f:
     for n in rows:
         s = '\t'.join([str(num) for num in final_embeddings_sent[n]])
         f.write(s+'\n')
+
+data_file = pd.read_csv('./Data/material.csv', sep=';', encoding = 'cp1251', error_bad_lines=False, low_memory = False)[
+    ['FullName']]
+
+for column in data_file.columns:
+    data_file[column]=data_file[column].astype('str')
+
 with open('mentadata_sent.txt', 'w') as f:
     for n in rows:
         f.write(data_file['FullName'][n] + '\n')
