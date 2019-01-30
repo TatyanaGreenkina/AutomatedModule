@@ -6,6 +6,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from collections import Counter
 import preprocessing
+import os
 from tqdm import tqdm
 
 
@@ -61,8 +62,11 @@ class CNN(object):
         self.train_op = tf.train.AdamOptimizer(self.learning_rate_ph).minimize(self.loss)
 
         self.sess = tf.Session()
-        self.sess.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver()
+        if os.listdir(r'./NeuralNet/cnn'):
+            self.saver.restore(self.sess, r'./NeuralNet/cnn/cnncnn.ckpt')
+        else:
+            self.sess.run(tf.global_variables_initializer())
 
     def __call__(self, tok_batch, mask_batch):
         feed_dict = {self.token_ph: tok_batch,
@@ -82,7 +86,7 @@ class CNN(object):
     def predict(self, tok):
         feed_dict = {self.token_ph: tok,
                      self.dropout_keep_ph: 1.0}
-        self.saver.restore(self.sess, r'./NeuralNet/cnn/cnncnn.ckpt')
+        # self.saver.restore(self.sess, r'./NeuralNet/cnn/cnncnn.ckpt')
         return self.sess.run(self.predictions, feed_dict)
 
 
@@ -151,7 +155,7 @@ def f1_score(n_tag, y_true, y_pred, logs, heatmap=True):
     return precision, recall, f1_score
 
 
-def prom_cnn(elem):
+def prom_cnn():
     prep = preprocessing.Preprocessing(r'dict', special_token='<UNK>')
     final_embeddings = []
     with open('./matrix/embeddings.txt', 'r', encoding='utf8') as f:
@@ -163,9 +167,9 @@ def prom_cnn(elem):
     index_to_count = {0: '10,01', 1: '10,02', 2: '10,05', 3: '10,09', 4: '10,06', 5: '10,08', 6: '10,12', 7: '10.10',
                       8: '10.11.01', 9: '10.03', 10: '10.11.02', 11: '10,07', 12: '10,04'}
     cnn = CNN(n_tags=len(tag_vocab), emb_mat=final_embeddings, n_hidden_list=[100, 100, 100])
-    batch = [[prep.word_to_index[i] for i in prep.prepare_data(elem)]]
-    y_pred = index_to_count[cnn.predict(tok=batch)[0]]
-    return y_pred
+    # batch = [[prep.word_to_index[i] for i in prep.prepare_data(elem)]]
+    # y_pred = index_to_count[cnn.predict(tok=batch)[0]]
+    return cnn, prep, index_to_count
 
 #========================================== Experiment ==========================================
 # prep = preprocessing.Preprocessing(r'../dict', special_token='<UNK>')

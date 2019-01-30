@@ -1,9 +1,9 @@
 import json
 from flask import Flask, request, abort
-import preprocessing
 import NeuralNet.CNN as cnn
 
-prep = preprocessing.Preprocessing(r'dict', special_token='<UNK>')
+
+cnn_net, prep, index_to_count = cnn.prom_cnn()
 
 app = Flask(__name__)
 
@@ -13,9 +13,10 @@ def add_message():
     if not request.json or not 'str' in request.json:
         abort(400)
     message = request.json['str']
+    batch = [[prep.word_to_index[i] for i in prep.prepare_data(message)]]
     task = {
         'str': message,
-        'count': cnn.prom_cnn(message)
+        'count': index_to_count[cnn_net.predict(tok=batch)[0]]
     }
     # answers.clear()
     # answers.append(prep.searcher(message))
