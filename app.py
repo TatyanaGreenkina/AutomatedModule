@@ -13,10 +13,15 @@ def add_message():
     if not request.json or not 'str' in request.json:
         abort(400)
     message = request.json['str']
-    batch = [[prep.word_to_index[i] for i in prep.prepare_data(message)]]
+    prep_message = prep.prepare_data(message)
+    if prep_message == '<UNK>':
+        count = 'NOUN'
+    else:
+        batch = [[prep.word_to_index[i] for i in prep_message]]
+        count = index_to_count[cnn_net.predict(tok=batch)[0]]
     task = {
         'str': message,
-        'count': index_to_count[cnn_net.predict(tok=batch)[0]]
+        'count': count
     }
     # answers.clear()
     # answers.append(prep.searcher(message))
