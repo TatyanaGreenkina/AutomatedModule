@@ -1,8 +1,9 @@
 import json
-from flask import Flask, request, abort
+from flask import Flask, request, abort, render_template
 import NeuralNet.CNN as cnn
+from rankin import Ranking
 
-
+rank = Ranking()
 cnn_net, prep, index_to_count = cnn.prom_cnn()
 
 app = Flask(__name__)
@@ -23,10 +24,26 @@ def add_message():
         'str': message,
         'count': count
     }
-    # answers.clear()
-    # answers.append(prep.searcher(message))
     return json.dumps(task, ensure_ascii=False), 201
+
+
+@app.route('/main', methods=['GET', 'POST'])
+def search():
+    elems = []
+    answers = prep.rows
+    if request.method == 'POST':
+        message = request.form['text']
+        for i in rank.search_simil_elems(message, 5):
+            elems.append('-----'.join([i[0], str(i[1])]))
+    return render_template('add_message.html', answers=answers, elems=elems)
+
 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+# s = 'болт насосы гайка'
+# # print(rank.search_simil_elems(s, 5))
+# for i in rank.search_simil_elems(s, 5):
+#     print('-----'.join([i[0], str(i[1])]))
+

@@ -79,13 +79,40 @@ class Preprocessing(object):
             words_in_dict.append([self.word_to_index[i] for i in self.prepare_data(elem) if i not in '<UNK>'])
         return words_in_dict
 
+    def create_emb_dict(self):
+        embeddings = []
+        with open('./matrix/embeddings.txt', 'r', encoding='utf8') as f:
+            emb_lines = f.readlines()
+            for i in range(len(emb_lines)):
+                embeddings.append([float(num) for num in emb_lines[i].replace('\n', '').split('\t')[1:]])
+        embeddings = np.array(embeddings)
+        final_embeddings = np.concatenate((np.zeros((1, embeddings.shape[1])), embeddings), axis=0)
+        elems = {i: [self.word_to_index[j] for j in self.rows[i].keys() if not re.findall(r'\d', j) and j] for i in self.rows.keys()}
+        embed = {key: np.mean(final_embeddings[elems[key]], axis=0) for key in elems.keys()}
+        return final_embeddings, embed
+
+    def search_simil_elems(self, elem, num):
+        index_words = self.create_train_data([elem])
+        word_emb, embed_dict = self.create_emb_dict()
+        search_result = []
+        vec1 = np.mean(word_emb[index_words[0]], axis=0)
+        for key in embed_dict.keys():
+            vec2 = embed_dict[key]
+            simil = 1 - spatial.distance.cosine(vec1, vec2)
+            if simil > 0.9:
+                search_result.append([key, simil])
+        search_result.sort(key=lambda x:x[1], reverse=True)
+        return search_result[:num]
+
 
 #=============================== Experiment ==========================================
 
 # prep = Preprocessing(r'./dict', special_token='<UNK>')
 # print(prep.create_train_data(['Бланк для записи потенциалов',
 # 'Профиль ПС 75х50 3 м Кнауф 0,60 мм', 'Шайба 0730 107 966 01']))
-
+#
+#
+# print(prep.prepare_data('лиаз топливо болт'))
 # data_file = pd.read_csv('./Data/material.csv', sep=';', encoding = 'cp1251', error_bad_lines=False,
 #                         low_memory=False)[['FullName']]
 #
